@@ -20,7 +20,8 @@
       "copy-object": "./nodes/copy-object/copy-object.js",
       "move-object": "./nodes/move-object/move-object.js",
       "object-exists": "./nodes/object-exists/object-exists.js",
-      "put-object-acl": "./nodes/put-object-acl/put-object-acl.js"
+      "put-object-acl": "./nodes/put-object-acl/put-object-acl.js",
+      "multipart-upload": "./nodes/multipart-upload/multipart-upload.js" 
     }
   },
   "repository": {
