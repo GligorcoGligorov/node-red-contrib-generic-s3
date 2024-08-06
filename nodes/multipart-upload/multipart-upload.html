@@ -1,3 +1,4 @@
+<!-- BEGIN Multipart Upload OBJECT -->
 <script type="text/x-red" data-template-name="Multipart Upload">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="Name">&nbsp;</span>Name: </label>
@@ -8,15 +9,27 @@
         <input type="text" id="node-input-conf">
     </div>
     <div class="form-row">
-        <label for="node-input-objects"><code><i class="fa fa-pencil-square-o"></i></code> <span data-i18n="Objects">&nbsp;</span>Objects: </label>
-        <input type="text" id="node-input-objects" data-i18n="[placeholder][{JSON}, {JSON}, ...]">
+        <label for="node-input-bucket"><code><i class="fa fa-database"></i></code> <span data-i18n="Bucket">&nbsp;</span>Bucket: </label>
+        <input type="text" id="node-input-bucket" data-i18n="[placeholder]Bucket">
     </div>
+    <div class="form-row">
+        <label for="node-input-key"><code><i class="fa fa-magic"></i></code> <span data-i18n="Key">&nbsp;</span>Key: </label>
+        <input type="text" id="node-input-key" data-i18n="[placeholder]Object Key">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-body"><code><i class="fa fa-pencil-square-o"></i></code> <span data-i18n="Body">&nbsp;</span>Body: </label>
+        <input type="text" id="node-input-body" data-i18n="[placeholder]{String}">
+    </div>
+
+
     <div class="form-tips">
         <span>Tips:</span>
-        <ul>
-            <li><span data-i18n="[html]tip1">If you are setting Objects using this node, make sure it is in valid format as specified in the placeholder. The objects field needs to be an array of objects. Leave <code>Objects</code> field blank if you are setting it via msg property. <code><b><u>Red</u></b></code> iconed properties are <code>required!</code> E.g.:
+        <ul><code>Body</code><code><b><u>Red</u></b></code> iconed properites are <code>required!</code> E.g.:
                 <ul>
-                    <li><code>msg.objects = [{</br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bucket: "test-bucket", </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key: "unique-object-key.json", </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; versionid(optional): "t46ZenlYTZBnj", </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stringifybody(optional): true | false, </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stringifybodybase64(optional): true | false </br>&nbsp; }]</code></li>
+                    <li><code>msg.bucket = "test-bucket"</code></li>
+                    <li><code>msg.key = "unique-object-key.json"</code></li>
+                    <li><code>msg.body = "some data"</code></li>
                 </ul>
             </li>
         </ul>
@@ -24,7 +37,48 @@
 </script>
 
 <script type="text/x-red" data-help-name="Multipart Upload">
-    <p>S3 multipart upload node. This node is used to upload large files to S3 in multiple parts. The bucket name, object key, and file parts can be specified in the properties of the node or by setting input properties <code>msg.bucket</code>, <code>msg.key</code>, and <code>msg.parts</code> respectively.</p>
+    <p>S3 multipart upload node. This node is used to upload large files to S3 in multiple parts, which is ideal for files larger than 100 MB. The multipart upload process can improve throughput and allows for uploading parts in parallel.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>bucket <span class="property-type">string</span></dt>
+        <dd>The name of the S3 bucket to upload to.</dd>
+
+        <dt>key <span class="property-type">string</span></dt>
+        <dd>The object key (file name) in the S3 bucket.</dd>
+
+        <dt>parts <span class="property-type">array</span></dt>
+        <dd>An array of objects, each representing a part of the file to upload. Each part should be at least 5 MB, except for the last part.</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <p>The bucket name, object key, and file parts can be specified in the properties of the node or by setting input properties:</p>
+    <ul>
+        <li><code>msg.bucket</code> - The S3 bucket name</li>
+        <li><code>msg.key</code> - The object key (file name) in the bucket</li>
+        <li><code>msg.parts</code> - An array of parts to upload</li>
+    </ul>
+
+    <h3>Parts Format</h3>
+    <p>The <code>parts</code> array should contain objects with a <code>body</code> property:</p>
+    <pre>{
+    parts: [
+        { body: "Content of part 1" },
+        { body: "Content of part 2" },
+        // ... more parts ...
+    ]
+}</pre>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The response from S3 after the multipart upload is complete.</dd>
+    </dl>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">S3 Multipart Upload Overview</a></li>
+    </ul>
 </script>
 
 <script type="text/javascript">
@@ -32,9 +86,11 @@
         category: 'storage-input',
         color: "#FFFFFF",
         defaults: {
-            name: {value: ""},
-            conf: {type: "client-s3", required: true},
-            objects: {type: 'text', required: false}
+            name: { value: "" },
+            conf: { type: "client-s3", required: true },
+            bucket: { type: 'text', required: false },
+            key: { type: 'text', required: false },
+            body: { type: 'text', required: false },
         },
         inputs: 1,
         outputs: 1,
